@@ -12,7 +12,5 @@ RUN npx prisma generate
 COPY tsconfig*.json ./
 COPY src ./src
 
-# сборка и запуск без watch
-RUN npm run build
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+CMD ["npm", "run", "start:dev"]
