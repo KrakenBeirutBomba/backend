@@ -7,52 +7,58 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-enum Role {
-  MANAGER
-  ADMINISTRATOR
-}
-
-model User {
+model Bar {
   id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  passwordHash String
-  role      Role     @default(MANAGER)
+  name      String
+  description String? @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("users")
+  products Product[]
+  categories Category[]
+
+  @@map("bars")
 }
 
 model Category {
   id        String   @id @default(cuid())
-  slug     String   @unique
-  name      String   @unique
-  description String?
+  slug     String   
+  name      String   
+  description String? @db.Text
   imageUrl String?
+  barId  String
+  bar    Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+
   products Product[]
 
-  @@map("categories")
+  @@map("categories") 
+  @@unique([name, barId])
+  @@unique([slug, barId])
+  @@unique([id, barId])
 }
 
 model Product {
   id          String    @id @default(cuid())
-  slug        String    @unique
+  slug        String
   name        String
-  description String?
+  description String?   @db.Text
   price       Decimal   @db.Decimal(10, 2)
   imageUrl    String?
-  method String?
-  ingredients String?
+  method      String?   @db.Text 
+  ingredients String?   @db.Text
   categoryId  String
-  category    Category  @relation(fields: [categoryId], references: [id])
+  category    Category  @relation(fields: [categoryId, barId], references: [id, barId], onDelete: Cascade)
+  barId       String
+  bar         Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@unique([name, categoryId])
+  @@unique([name, categoryId, barId])
+  @@unique([slug, categoryId, barId])
+
   @@map("products")
 }
 
