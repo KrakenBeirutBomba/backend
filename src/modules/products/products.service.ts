@@ -1,9 +1,9 @@
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
-import { PrismaService } from "src/prisma/prisma.service";
 import { Decimal } from "@prisma/client/runtime/library";
 import { getSlug } from "src/shared/lib/getSlug";
+import { PrismaService } from "src/shared/modules/prisma/prisma.service";
 
 const toDecimal = (x: string) => new Decimal(x);
 const mapPrice = (p: any) => (p?.toFixed ? p.toFixed(2) : p);
