@@ -20,9 +20,6 @@ export class ProductsService {
 
     const slug = getSlug(createProductDto.name);
 
-    const doesSlugExists = await this.prisma.product.findUnique({ where: { slug } });
-    if (doesSlugExists) throw new NotFoundException("Product with this name already exists");
-
     const created = await this.prisma.product.create({
       data: { ...createProductDto, price: toDecimal(createProductDto.price), slug },
     });
@@ -60,13 +57,10 @@ export class ProductsService {
     };
   }
 
-  async findBySlug(slug: string) {
-    const p = await this.prisma.product.findUnique({
-      where: { slug },
-      include: { category: true },
-    });
-    if (!p) throw new NotFoundException("Product not found");
-    return { ...p, price: mapPrice(p.price) };
+  async findOne(id: string) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException("Product not found");
+    return { ...product, price: mapPrice(product.price) };
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {

@@ -9,8 +9,6 @@ export class CategoriesService {
   constructor(private readonly prisma: PrismaService) {}
   async create(createCategoryDto: CreateCategoryDto) {
     const slug = getSlug(createCategoryDto.name);
-    const exists = await this.prisma.category.findUnique({ where: { slug } });
-    if (exists) throw new Error("Category with this name already exists");
     return this.prisma.category.create({ data: { ...createCategoryDto, slug } });
   }
 
