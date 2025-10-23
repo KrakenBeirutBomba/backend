@@ -43,6 +43,16 @@ export class BarsService {
     return bar;
   }
 
+  async findBySlug(slug: string) {
+    const bar = await this.prisma.bar.findUnique({
+      where: { slug },
+    });
+    if (!bar) {
+      throw new NotFoundException(`Bar with slug ${slug} not found`);
+    }
+    return bar;
+  }
+
   async update(id: string, updateBarDto: UpdateBarDto) {
     const bar = await this.prisma.bar.findUnique({ where: { id } });
     if (!bar) {

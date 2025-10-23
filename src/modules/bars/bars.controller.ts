@@ -22,6 +22,11 @@ export class BarsController {
     return this.barsService.findOne(id);
   }
 
+  @Get("slug/:slug")
+  findBySlug(@Param("slug") slug: string) {
+    return this.barsService.findBySlug(slug);
+  }
+
   @Patch(":id")
   update(@Param("id") id: string, @Body() updateBarDto: UpdateBarDto) {
     return this.barsService.update(id, updateBarDto);
