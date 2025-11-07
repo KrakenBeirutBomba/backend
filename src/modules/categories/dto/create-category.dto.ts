@@ -5,12 +5,12 @@ export class CreateCategoryDto {
   @Length(2, 50)
   name!: string;
 
-  @IsString()
-  barId!: string;
-
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsString()
+  barId!: string;
 
   @IsOptional()
   @IsString()

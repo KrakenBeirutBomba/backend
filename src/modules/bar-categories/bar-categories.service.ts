@@ -1,19 +1,18 @@
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { CreateCategoryDto } from "./dto/create-category.dto";
-import { UpdateCategoryDto } from "./dto/update-category.dto";
-import { getSlug } from "src/shared/lib/getSlug";
+import { CreateBarCategoryDto } from "./dto/create-bar-category.dto";
+import { UpdateBarCategoryDto } from "./dto/update-bar-category.dto";
 import { PrismaService } from "src/shared/modules/prisma/prisma.service";
+import { getSlug } from "src/shared/lib/getSlug";
 
 @Injectable()
-export class CategoriesService {
+export class BarCategoriesService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async create(createCategoryDto: CreateCategoryDto) {
+  async create(barId: string, createCategoryDto: CreateBarCategoryDto) {
     const categoryExists = await this.prisma.category.findUnique({
       where: {
         name_barId: {
           name: createCategoryDto.name,
-          barId: createCategoryDto.barId,
+          barId,
         },
       },
     });
@@ -28,7 +27,7 @@ export class CategoriesService {
       where: {
         slug_barId: {
           slug,
-          barId: createCategoryDto.barId,
+          barId,
         },
       },
     });
@@ -37,28 +36,23 @@ export class CategoriesService {
       throw new ConflictException("Category with this slug already exists in the specified bar");
     }
 
-    return this.prisma.category.create({ data: { ...createCategoryDto, slug } });
+    return this.prisma.category.create({ data: { ...createCategoryDto, slug, barId } });
   }
 
-  findAll() {
-    return this.prisma.category.findMany();
+  findAll(barId: string) {
+    return this.prisma.category.findMany({ where: { barId } });
   }
 
-  findOne(id: string) {
-    const category = this.prisma.category.findUnique({ where: { id } });
-
-    if (!category) {
-      throw new NotFoundException("Category not found");
-    }
-
+  async findOne(barId: string, id: string) {
+    const category = await this.prisma.category.findFirst({ where: { id, barId } });
+    if (!category) throw new NotFoundException("Category not found in the specified bar");
     return category;
   }
 
-  async update(id: string, updateCategoryDto: UpdateCategoryDto) {
-    const category = await this.prisma.category.findUnique({ where: { id } });
-    if (!category) throw new NotFoundException("Category not found");
+  async update(barId: string, id: string, updateCategoryDto: UpdateBarCategoryDto) {
+    const category = await this.prisma.category.findUnique({ where: { id, barId } });
+    if (!category) throw new NotFoundException("Category not found in the specified bar");
 
-    const barId = category.barId;
     let slug = category.slug;
 
     if (updateCategoryDto.name && updateCategoryDto.name !== category.name) {
@@ -72,7 +66,7 @@ export class CategoriesService {
       });
 
       if (nameExists) {
-        throw new ConflictException("Category with this name already exists in the bar it belongs to");
+        throw new ConflictException("Category with this name already exists in the specified bar");
       }
 
       slug = getSlug(updateCategoryDto.name);
@@ -87,16 +81,16 @@ export class CategoriesService {
       });
 
       if (slugExists) {
-        throw new ConflictException("Category with this slug already exists in the bar it belongs to");
+        throw new ConflictException("Category with this slug already exists in the specified bar");
       }
     }
 
     return this.prisma.category.update({ where: { id, barId }, data: { ...updateCategoryDto, slug } });
   }
 
-  async remove(id: string) {
-    const category = await this.prisma.category.findUnique({ where: { id } });
-    if (!category) throw new NotFoundException("Category not found");
+  async remove(barId: string, id: string) {
+    const category = await this.prisma.category.findUnique({ where: { id, barId } });
+    if (!category) throw new NotFoundException("Category not found in the specified bar");
     return this.prisma.category.delete({ where: { id } });
   }
 }
