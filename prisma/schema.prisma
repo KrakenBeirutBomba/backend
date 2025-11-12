@@ -12,8 +12,8 @@ model Bar {
   name      String   @unique 
   slug      String   @unique
   description String? @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   products Product[]
   categories Category[]
@@ -26,11 +26,11 @@ model Category {
   slug     String   
   name      String   
   description String? @db.Text
-  imageUrl String?
-  barId  String
+  imageUrl String? @map("image_url")
+  barId  String    @map("bar_id")
   bar    Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
 
   products Product[]
@@ -46,16 +46,16 @@ model Product {
   slug        String
   name        String
   description String?   @db.Text
-  price       Decimal   @db.Decimal(10, 2)
-  imageUrl    String?
+  price       Int
+  imageUrl    String?   @map("image_url")
   method      String?   @db.Text 
   ingredients String?   @db.Text
-  categoryId  String
+  categoryId  String    @map("category_id")
   category    Category  @relation(fields: [categoryId, barId], references: [id, barId], onDelete: Cascade)
-  barId       String
+  barId      String    @map("bar_id")
   bar         Bar      @relation(fields: [barId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   @@unique([name, categoryId, barId])
   @@unique([slug, categoryId, barId])

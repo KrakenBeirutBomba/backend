@@ -1,5 +1,5 @@
 import { Transform } from "class-transformer";
-import { IsOptional, IsString, IsUUID, Length, Matches } from "class-validator";
+import { IsNumber, IsOptional, IsString, IsUUID, Length, Matches } from "class-validator";
 
 export class CreateProductDto {
   @IsString()
@@ -14,8 +14,8 @@ export class CreateProductDto {
   @IsString()
   imageUrl?: string;
 
-  @IsString()
-  price!: string;
+  @IsNumber()
+  price!: number;
 
   @IsOptional()
   @IsString()

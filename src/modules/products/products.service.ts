@@ -1,18 +1,20 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { CreateProductDto } from "./dto/create-product.dto";
 import { UpdateProductDto } from "./dto/update-product.dto";
-import { Decimal } from "@prisma/client/runtime/library";
 import { getSlug } from "src/shared/lib/getSlug";
 import { PrismaService } from "src/shared/modules/prisma/prisma.service";
-
-const toDecimal = (x: string) => new Decimal(x);
-const mapPrice = (p: any) => (p?.toFixed ? p.toFixed(2) : p);
+import { toDecimal, mapPrice } from "src/shared/lib/price-utils";
 
 @Injectable()
 export class ProductsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createProductDto: CreateProductDto) {
+    const doesBarExists = await this.prisma.bar.findUnique({
+      where: { id: createProductDto.barId },
+    });
+    if (!doesBarExists) throw new NotFoundException("Bar not found");
+
     const doesCategoryExists = await this.prisma.category.findUnique({
       where: { id: createProductDto.categoryId },
     });
@@ -21,7 +23,7 @@ export class ProductsService {
     const slug = getSlug(createProductDto.name);
 
     const created = await this.prisma.product.create({
-      data: { ...createProductDto, price: toDecimal(createProductDto.price), slug },
+      data: { ...createProductDto, slug },
     });
 
     return { ...created, price: mapPrice(created.price) };
@@ -69,7 +71,7 @@ export class ProductsService {
 
     const updated = await this.prisma.product.update({
       where: { id },
-      data: { ...updateProductDto, price: toDecimal(updateProductDto.price) as any },
+      data: { ...updateProductDto },
     });
     return { ...updated, price: mapPrice(updated.price) };
   }
