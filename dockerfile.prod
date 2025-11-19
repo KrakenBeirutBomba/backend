@@ -1,0 +1,48 @@
+# ========== STAGE 1: Builder - собираем приложение ==========
+FROM node:20-bullseye AS builder
+
+WORKDIR /app
+
+# Копируем package.json и устанавливаем ВСЕ зависимости (включая dev)
+COPY package*.json ./
+COPY prisma ./prisma
+
+# ✅ ИСПРАВЛЕНО: Устанавливаем ВСЕ зависимости (для сборки нужен nest CLI)
+RUN npm ci
+
+# Генерируем Prisma Client
+RUN npx prisma generate
+
+# Копируем исходники
+COPY tsconfig*.json ./
+COPY src ./src
+
+# Собираем приложение
+RUN npm run build
+
+# ========== STAGE 2: Production - минимальный образ ==========
+FROM node:20-bullseye-slim
+
+WORKDIR /app
+
+# Копируем package.json
+COPY package*.json ./
+COPY prisma ./prisma
+
+# ✅ Устанавливаем ТОЛЬКО production зависимости
+RUN npm ci --omit=dev
+
+# ✅ Генерируем Prisma Client (нужен в runtime)
+RUN npx prisma generate
+
+# Копируем собранное приложение из builder
+COPY --from=builder /app/dist ./dist
+
+# Environment
+ENV NODE_ENV=production
+
+# Открываем порт
+EXPOSE 3000
+
+# ✅ Применить миграции и запустить
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start:prod"]
